@@ -1,158 +1,122 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import React, { ReactNode } from 'react'
+import { Box, BottomNavigation, BottomNavigationAction, Paper, Typography, AppBar, Toolbar, Container, IconButton, useTheme } from '@mui/material'
+import { useLocation, useNavigate, Link as RouterLink } from 'react-router-dom'
 import {
-  AppBar,
-  Box,
-  CssBaseline,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Typography,
-  useTheme,
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
   Dashboard as DashboardIcon,
   Security as SecurityIcon,
-  Link as LinkIcon,
   Person as PersonIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
+  Brightness4,
+  Brightness7,
+} from '@mui/icons-material'
+import sharkIcon from '../assets/shark-icon.svg'
 
-const drawerWidth = 240;
+const menuItems = [
+  { label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { label: 'Scan', icon: <SecurityIcon />, path: '/scan' },
+  { label: 'Profile', icon: <PersonIcon />, path: '/profile' },
+]
 
-const Layout: React.FC = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const theme = useTheme();
-  const navigate = useNavigate();
-  const { user, logout } = useAuth();
+interface LayoutProps {
+  children: ReactNode;
+  toggleTheme: () => void;
+}
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Malware Scan', icon: <SecurityIcon />, path: '/scan' },
-    { text: 'Phishing Detection', icon: <LinkIcon />, path: '/phishing' },
-    { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
-  ];
-
-  const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Smart Shark
-        </Typography>
-      </Toolbar>
-      <List>
-        {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              setMobileOpen(false);
-            }}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
-          </ListItem>
-        ))}
-        <ListItem
-          button
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
-        >
-          <ListItemIcon>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="Logout" />
-        </ListItem>
-      </List>
-    </div>
-  );
+const Layout = ({ children, toggleTheme }: LayoutProps) => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const currentPath = location.pathname
+  const theme = useTheme()
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-        }}
-      >
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh',
+      pb: '64px', // Add padding bottom to account for fixed navigation
+    }}>
+      <AppBar position="static" color="default" elevation={1}>
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              '&:hover': {
+                opacity: 0.8,
+              },
+            }}
+            onClick={() => navigate('/')}
           >
-            <MenuIcon />
+            <img
+              src={sharkIcon}
+              alt="Smart Shark"
+              style={{ width: 40, height: 40, marginRight: 8 }}
+            />
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Smart Shark
+            </Typography>
+          </Box>
+          <Box sx={{ flexGrow: 1 }} />
+          <IconButton onClick={toggleTheme} color="inherit">
+            {theme.palette.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            {user?.name}'s Dashboard
-          </Typography>
         </Toolbar>
       </AppBar>
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-            },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-        }}
-      >
-        <Toolbar />
-        <Outlet />
-      </Box>
-    </Box>
-  );
-};
 
-export default Layout; 
+      <Box sx={{ flexGrow: 1 }}>
+        {children}
+      </Box>
+      
+      <Paper
+        sx={{ 
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+        }} 
+        elevation={3}
+      >
+        <BottomNavigation
+          value={currentPath}
+          onChange={(_, newValue) => {
+            navigate(newValue)
+          }}
+          sx={{
+            backgroundColor: '#002B5C',
+            height: 64,
+            '& .MuiBottomNavigationAction-root': {
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&.Mui-selected': {
+                color: '#ffffff',
+              },
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              },
+            },
+          }}
+        >
+          {menuItems.map((item) => (
+            <BottomNavigationAction
+              key={item.path}
+              label={item.label}
+              value={item.path}
+              icon={item.icon}
+              sx={{
+                '& .MuiBottomNavigationAction-label': {
+                  fontSize: '0.75rem',
+                  '&.Mui-selected': {
+                    fontSize: '0.75rem',
+                  },
+                },
+              }}
+            />
+          ))}
+        </BottomNavigation>
+      </Paper>
+    </Box>
+  )
+}
+
+export default Layout
